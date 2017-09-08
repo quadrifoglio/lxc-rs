@@ -9,6 +9,7 @@ use std::ffi::{CStr, CString};
 /// Custom error type for this library.
 #[derive(Debug)]
 pub enum Error {
+    ContainerDoesNotExists,
     ContainerAlreadyExists,
     Unknown
 }
@@ -63,6 +64,26 @@ impl Container {
         }
     }
 
+    /// Check wether the LXC container with the specified name is
+    /// defined in the provided lxcpath.
+    pub fn exists(lxcpath: &str, name: &str) -> bool {
+        unsafe {
+            let lxcpath = CString::new(lxcpath).unwrap();
+            let name = CString::new(name).unwrap();
+
+            let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
+            if ct == 0 as *mut lib::lxc_container {
+                return false;
+            }
+
+            if (*ct).is_defined.unwrap()(ct) {
+                return true;
+            }
+
+            false
+        }
+    }
+
     /// Get a list of defined LXC containers in the specified
     /// lxcpath.
     pub fn list(lxcpath: &str) -> Result<Vec<Container>> {
@@ -94,23 +115,23 @@ impl Container {
         }
     }
 
-    /// Check wether the LXC container with the specified name is
-    /// defined in the provided lxcpath.
-    pub fn exists(lxcpath: &str, name: &str) -> bool {
+    /// Get an LXC container by its name from the specified
+    /// lxcpath.
+    pub fn get(lxcpath: &str, name: &str) -> Result<Container> {
         unsafe {
             let lxcpath = CString::new(lxcpath).unwrap();
             let name = CString::new(name).unwrap();
 
             let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
             if ct == 0 as *mut lib::lxc_container {
-                return false;
+                return Err(Error::Unknown);
             }
 
-            if (*ct).is_defined.unwrap()(ct) {
-                return true;
+            if !(*ct).is_defined.unwrap()(ct) {
+                return Err(Error::ContainerDoesNotExists);
             }
 
-            false
+            Ok(Container::from_raw(ct))
         }
     }
 
@@ -155,6 +176,17 @@ impl Container {
             }
 
             Ok(Container::from_raw(ct))
+        }
+    }
+
+    /// Destroy the LXC container.
+    pub fn destroy(self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).destroy.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
         }
     }
 }
