@@ -4,6 +4,8 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
+    println!("cargo:rustc-link-lib=lxc");
+
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
         .generate()
