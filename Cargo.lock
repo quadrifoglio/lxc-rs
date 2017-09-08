@@ -1,0 +1,8 @@
+[root]
+name = "lxc-sys"
+version = "0.1.0"
+
+[[package]]
+name = "lxc"
+version = "0.1.0"
+
