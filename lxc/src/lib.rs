@@ -94,6 +94,26 @@ impl Container {
         }
     }
 
+    /// Check wether the LXC container with the specified name is
+    /// defined in the provided lxcpath.
+    pub fn exists(lxcpath: &str, name: &str) -> bool {
+        unsafe {
+            let lxcpath = CString::new(lxcpath).unwrap();
+            let name = CString::new(name).unwrap();
+
+            let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
+            if ct == 0 as *mut lib::lxc_container {
+                return false;
+            }
+
+            if (*ct).is_defined.unwrap()(ct) {
+                return true;
+            }
+
+            false
+        }
+    }
+
     /// Create a new LXC container.
     pub fn create(lxcpath: &str, name: &str, template: Template) -> Result<Container> {
         unsafe {

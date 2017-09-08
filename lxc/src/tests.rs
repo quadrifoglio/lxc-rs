@@ -11,4 +11,7 @@ fn test_get_version() {
 fn test_create_container() {
     let ct = Container::create("/var/lib/lxc", "wesh", Template::new("debian"));
     assert!(ct.is_ok());
+
+    let exists = Container::exists("/var/lib/lxc", "wesh");
+    assert_eq!(exists, true);
 }
