@@ -159,6 +159,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "lxc"
 version = "0.1.0"
 dependencies = [
+ "libc 0.2.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "lxc-sys 0.1.0",
 ]
 

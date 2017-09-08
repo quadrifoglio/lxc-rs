@@ -5,3 +5,4 @@ authors = ["quadrifoglio <quadrifoglio.clement@protonmail.com>"]
 
 [dependencies]
 lxc-sys = { path = "../lxc-sys" }
+libc = "0.2.30"

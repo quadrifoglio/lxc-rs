@@ -1,8 +1,9 @@
 /// Rust library to interact with LXC.
 
+extern crate libc;
 extern crate lxc_sys as lib;
 
-use std::os::raw::c_char;
+use libc::{c_char, c_void};
 use std::ffi::{CStr, CString};
 
 /// Custom error type for this library.
@@ -72,7 +73,16 @@ impl Container {
                 vec.push(Container::from_raw(elem));
             }
 
+            libc::free(conts as *mut c_void);
             Ok(vec)
+        }
+    }
+}
+
+impl Drop for Container {
+    fn drop(&mut self) {
+        unsafe {
+            libc::free(self.handle as *mut c_void);
         }
     }
 }
