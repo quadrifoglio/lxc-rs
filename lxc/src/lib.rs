@@ -3,12 +3,13 @@
 extern crate libc;
 extern crate lxc_sys as lib;
 
-use libc::{c_char, c_void};
+use libc::{c_char, c_void, c_int};
 use std::ffi::{CStr, CString};
 
 /// Custom error type for this library.
 #[derive(Debug)]
 pub enum Error {
+    ContainerAlreadyExists,
     Unknown
 }
 
@@ -21,6 +22,21 @@ pub fn get_version() -> &'static str {
     unsafe {
         CStr::from_ptr(lib::lxc_get_version())
             .to_str().unwrap()
+    }
+}
+
+pub struct Template {
+    name: String,
+    options: Option<Vec<String>>
+}
+
+impl Template {
+    /// Create a new Template object.
+    pub fn new<S: Into<String>>(name: S) -> Template {
+        Template {
+            name: name.into(),
+            options: None
+        }
     }
 }
 
@@ -75,6 +91,50 @@ impl Container {
 
             libc::free(conts as *mut c_void);
             Ok(vec)
+        }
+    }
+
+    /// Create a new LXC container.
+    pub fn create(lxcpath: &str, name: &str, template: Template) -> Result<Container> {
+        unsafe {
+            let lxcpath = CString::new(lxcpath).unwrap();
+            let name = CString::new(name).unwrap();
+
+            let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
+            if ct == 0 as *mut lib::lxc_container {
+                return Err(Error::Unknown);
+            }
+
+            if (*ct).is_defined.unwrap()(ct) {
+                return Err(Error::ContainerAlreadyExists);
+            }
+
+            let mut template_opts: Vec<*const c_char> = Vec::new();
+
+            if let Some(options) = template.options {
+                if options.len() > 0 {
+                    for opt in &options {
+                        template_opts.push(CString::new(opt.as_str()).unwrap().into_raw() as *const c_char);
+                    }
+
+                    template_opts.push(0 as *const c_char);
+                }
+            }
+
+            let ok = (*ct).create.unwrap()(
+                ct,
+                template.name.as_ptr() as *const c_char,
+                0 as *const c_char,
+                0 as *mut lib::bdev_specs,
+                lib::LXC_CREATE_QUIET as c_int,
+                0 as *const *const c_char
+            );
+
+            if !ok {
+                return Err(Error::Unknown);
+            }
+
+            Ok(Container::from_raw(ct))
         }
     }
 }
