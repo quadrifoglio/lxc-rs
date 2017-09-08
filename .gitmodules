@@ -1,0 +1,3 @@
+[submodule "lxc-sys/lxc"]
+	path = lxc-sys/lxc
+	url = https://github.com/lxc/lxc.git
