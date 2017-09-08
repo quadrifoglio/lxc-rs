@@ -3,12 +3,12 @@
 use super::{Container, Template};
 
 #[test]
-fn test_get_version() {
+fn get_version() {
     assert!(super::get_version().len() > 0);
 }
 
 #[test]
-fn test_create_exists_destroy_container() {
+fn create_exists_destroy_container() {
     let ct = Container::create("/var/lib/lxc", "wesh", Template::new("debian"));
     assert!(ct.is_ok());
 
@@ -20,7 +20,7 @@ fn test_create_exists_destroy_container() {
 }
 
 #[test]
-fn test_create_get_destroy_container() {
+fn create_get_destroy_container() {
     let ct = Container::create("/var/lib/lxc", "fromage", Template::new("debian"));
     assert!(ct.is_ok());
 
