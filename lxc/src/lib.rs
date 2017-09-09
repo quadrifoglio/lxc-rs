@@ -203,6 +203,19 @@ impl Container {
         }
     }
 
+    /// Request the container to shutdown. Returns an error
+    /// if the container failed to shutdown in the
+    /// given time.
+    pub fn shutdown(&self, timeout: i32) -> Result<()> {
+        unsafe {
+            if !(*self.handle).shutdown.unwrap()(self.handle, timeout) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Start the LXC container.
     pub fn stop(&self) -> Result<()> {
         unsafe {
