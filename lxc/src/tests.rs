@@ -72,3 +72,17 @@ fn create_download_start_stop_destroy_container() {
     assert!(ct.stop().is_ok());
     assert!(ct.destroy().is_ok());
 }
+
+#[test]
+fn create_config_destroy_container() {
+    let ct = Container::create("/var/lib/lxc", "calice", Template::new("debian"));
+    assert!(ct.is_ok());
+
+    let ct = ct.unwrap();
+    let conf_path = ct.get_config_file_name();
+
+    assert!(conf_path.is_ok());
+    assert_eq!(conf_path.unwrap().as_str(), "/var/lib/lxc/calice/config");
+
+    assert!(ct.destroy().is_ok());
+}

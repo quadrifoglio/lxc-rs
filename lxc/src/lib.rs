@@ -192,6 +192,23 @@ impl Container {
         }
     }
 
+    /// Get the current configuration file name for the
+    /// LXC container.
+    pub fn get_config_file_name(&self) -> Result<String> {
+        unsafe {
+            let ptr = (*self.handle).config_file_name.unwrap()(self.handle);
+
+            if ptr == 0 as *mut c_char {
+                return Err(Error::Unknown);
+            }
+
+            let name = CString::from_raw(ptr).to_str().unwrap().to_owned();
+            libc::free(ptr as *mut c_void);
+
+            Ok(name)
+        }
+    }
+
     /// Start the LXC container.
     pub fn start(&self) -> Result<()> {
         unsafe {
