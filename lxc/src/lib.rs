@@ -26,9 +26,11 @@ pub fn get_version() -> &'static str {
     }
 }
 
+/// Represents an LXC template script used to build
+/// a container's rootfs.
 pub struct Template {
     name: String,
-    options: Option<Vec<String>>
+    options: Vec<String>
 }
 
 impl Template {
@@ -36,8 +38,16 @@ impl Template {
     pub fn new<S: Into<String>>(name: S) -> Template {
         Template {
             name: name.into(),
-            options: None
+            options: Vec::new()
         }
+    }
+
+    /// Add a parameter and its value that will
+    /// be passed to the template script.
+    pub fn option<S: Into<String>>(mut self, opt: S, value: S) -> Template {
+        self.options.push(opt.into());
+        self.options.push(value.into());
+        self
     }
 }
 
@@ -140,6 +150,7 @@ impl Container {
         unsafe {
             let lxcpath = CString::new(lxcpath).unwrap();
             let name = CString::new(name).unwrap();
+            let template_name = CString::new(template.name.as_str()).unwrap();
 
             let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
             if ct == 0 as *mut lib::lxc_container {
@@ -150,25 +161,27 @@ impl Container {
                 return Err(Error::ContainerAlreadyExists);
             }
 
-            let mut template_opts: Vec<*const c_char> = Vec::new();
+            // Convert the Rust String vector to a vector of CString
+            let template_opts = template.options
+                .into_iter()
+                .map(|s| CString::new(s).unwrap())
+                .collect::<Vec<CString>>();
 
-            if let Some(options) = template.options {
-                if options.len() > 0 {
-                    for opt in &options {
-                        template_opts.push(CString::new(opt.as_str()).unwrap().into_raw() as *const c_char);
-                    }
+            // Construct the array of C char pointers to be passed
+            // to liblxc
+            let mut ptr_template_opts = template_opts.iter()
+                .map(|s| s.as_ptr() as *const c_char)
+                .collect::<Vec<*const c_char>>();
 
-                    template_opts.push(0 as *const c_char);
-                }
-            }
+            ptr_template_opts.push(0 as *const c_char);
 
             let ok = (*ct).create.unwrap()(
                 ct,
-                template.name.as_ptr() as *const c_char,
+                template_name.as_ptr(),
                 0 as *const c_char,
                 0 as *mut lib::bdev_specs,
                 lib::LXC_CREATE_QUIET as c_int,
-                0 as *const *const c_char
+                ptr_template_opts.as_ptr()
             );
 
             if !ok {

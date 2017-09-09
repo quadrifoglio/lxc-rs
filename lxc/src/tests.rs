@@ -31,3 +31,17 @@ fn create_get_destroy_container() {
 
     assert!(ct.destroy().is_ok());
 }
+
+#[test]
+fn create_template_opts_destroy_container() {
+    let template = Template::new("download")
+        .option("-d", "alpine")
+        .option("-r", "3.6")
+        .option("-a", "amd64");
+
+    let ct = Container::create("/var/lib/lxc", "reblochon", template);
+    assert!(ct.is_ok());
+
+    let ct = ct.unwrap();
+    assert!(ct.destroy().is_ok());
+}
