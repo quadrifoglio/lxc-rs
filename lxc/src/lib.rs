@@ -203,6 +203,28 @@ impl Container {
         }
     }
 
+    /// Freeze a running LXC container.
+    pub fn freeze(&self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).freeze.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Thaw a frozen LXC container.
+    pub fn unfreeze(&self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).unfreeze.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Request the container to shutdown. Returns an error
     /// if the container failed to shutdown in the
     /// given time.
