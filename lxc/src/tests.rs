@@ -84,5 +84,13 @@ fn create_config_destroy_container() {
     assert!(conf_path.is_ok());
     assert_eq!(conf_path.unwrap().as_str(), "/var/lib/lxc/calice/config");
 
+    let val = ct.get_config_item("lxc.utsname");
+    assert!(val.is_ok());
+    assert_eq!(val.unwrap().as_str(), "calice");
+    assert!(ct.set_config_item("lxc.utsname", "tamer").is_ok());
+
+    let val = ct.get_config_item("lxc.utsname").unwrap();
+    assert_eq!(val.as_str(), "tamer");
+
     assert!(ct.destroy().is_ok());
 }

@@ -207,6 +207,53 @@ impl Container {
         }
     }
 
+    /// Retreive the value of a configuration
+    /// item of an LXC container.
+    pub fn get_config_item(&self, key: &str) -> Result<String> {
+        unsafe {
+            let key = CString::new(key).unwrap();
+            let size = (*self.handle).get_config_item.unwrap()(self.handle, key.as_ptr(), 0 as *mut c_char, 0);
+
+            if size < 0 {
+                return Err(Error::Unknown);
+            }
+
+            // Allocate a string long enough to hold the returned value
+            let mut value = vec![0u8; (size + 1) as usize];
+
+            let ok = (*self.handle).get_config_item.unwrap()(
+                self.handle,
+                key.as_ptr(),
+                value.as_mut_ptr() as *mut c_char,
+                size + 1
+            );
+
+            // Remove the null byte terminating the returned C string
+            value.pop();
+
+            if ok < 0 {
+                return Err(Error::Unknown);
+            }
+
+            Ok(String::from_utf8(value).unwrap())
+        }
+    }
+
+    /// Set a key/value configuration option for an
+    /// LXC container.
+    pub fn set_config_item(&self, key: &str, value: &str) -> Result<()> {
+        unsafe {
+            let key = CString::new(key).unwrap();
+            let value = CString::new(value).unwrap();
+
+            if !(*self.handle).set_config_item.unwrap()(self.handle, key.as_ptr(), value.as_ptr()) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Start the LXC container.
     pub fn start(&self) -> Result<()> {
         unsafe {
