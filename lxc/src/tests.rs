@@ -33,7 +33,7 @@ fn create_get_destroy_container() {
 }
 
 #[test]
-fn create_template_opts_destroy_container() {
+fn create_download_destroy_container() {
     let template = Template::new("download")
         .option("-d", "alpine")
         .option("-r", "3.6")
@@ -43,5 +43,32 @@ fn create_template_opts_destroy_container() {
     assert!(ct.is_ok());
 
     let ct = ct.unwrap();
+    assert!(ct.destroy().is_ok());
+}
+
+#[test]
+fn create_start_stop_destroy_container() {
+    let ct = Container::create("/var/lib/lxc", "tabarnacle", Template::new("debian"));
+    assert!(ct.is_ok());
+
+    let ct = ct.unwrap();
+    assert!(ct.start().is_ok());
+    assert!(ct.stop().is_ok());
+    assert!(ct.destroy().is_ok());
+}
+
+#[test]
+fn create_download_start_stop_destroy_container() {
+    let template = Template::new("download")
+        .option("-d", "centos")
+        .option("-r", "7")
+        .option("-a", "amd64");
+
+    let ct = Container::create("/var/lib/lxc", "tabarnouche", template);
+    assert!(ct.is_ok());
+
+    let ct = ct.unwrap();
+    assert!(ct.start().is_ok());
+    assert!(ct.stop().is_ok());
     assert!(ct.destroy().is_ok());
 }

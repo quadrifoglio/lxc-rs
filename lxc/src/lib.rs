@@ -192,6 +192,28 @@ impl Container {
         }
     }
 
+    /// Start the LXC container.
+    pub fn start(&self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).start.unwrap()(self.handle, 0 as c_int, 0 as *const *const c_char) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Start the LXC container.
+    pub fn stop(&self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).stop.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Destroy the LXC container.
     pub fn destroy(self) -> Result<()> {
         unsafe {
