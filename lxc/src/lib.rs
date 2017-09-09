@@ -202,9 +202,7 @@ impl Container {
                 return Err(Error::Unknown);
             }
 
-            let name = CString::from_raw(ptr).to_str().unwrap().to_owned();
-            libc::free(ptr as *mut c_void);
-
+            let name = CString::from_raw(ptr).into_string().unwrap();
             Ok(name)
         }
     }
