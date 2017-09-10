@@ -53,15 +53,25 @@ impl Template {
 
 /// Represents an LXC container snapshot.
 pub struct Snapshot {
-    handle: lib::lxc_snapshot
+    handle: lib::lxc_snapshot,
+
+    /// Name of the snapshot.
+    pub name: String,
+
+    /// Time the snapshot was created at.
+    pub created: String
 }
 
 impl Snapshot {
     /// Create a Rust Snapshot object based on a
     /// liblxc lxc_snapshot struct.
     fn from_raw(raw: lib::lxc_snapshot) -> Snapshot {
-        Snapshot {
-            handle: raw
+        unsafe {
+            Snapshot {
+                handle: raw,
+                name: CStr::from_ptr(raw.name as *const c_char).to_str().unwrap().to_string(),
+                created: CStr::from_ptr(raw.timestamp as *const c_char).to_str().unwrap().to_string(),
+            }
         }
     }
 }
@@ -351,6 +361,22 @@ impl Container {
                 .collect::<Vec<Snapshot>>();
 
             Ok(vec)
+        }
+    }
+
+    /// Restore the specified snapshot as a new container with the
+    /// given name. If the given name if identical to the original
+    /// container's name, it will be reaplced.
+    pub fn snapshot_restore(&self, snap_name: &str, container_name: &str) -> Result<()> {
+        unsafe {
+            let snap_name = CString::new(snap_name).unwrap();
+            let container_name = CString::new(container_name).unwrap();
+
+            if !(*self.handle).snapshot_restore.unwrap()(self.handle, snap_name.as_ptr(), container_name.as_ptr()) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
         }
     }
 
