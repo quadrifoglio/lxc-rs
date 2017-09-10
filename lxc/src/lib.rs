@@ -53,13 +53,13 @@ impl Template {
 
 /// Represents an LXC container snapshot.
 pub struct Snapshot {
-    handle: *mut lib::lxc_snapshot
+    handle: lib::lxc_snapshot
 }
 
 impl Snapshot {
     /// Create a Rust Snapshot object based on a
     /// liblxc lxc_snapshot struct.
-    fn from_raw(raw: *mut lib::lxc_snapshot) -> Snapshot {
+    fn from_raw(raw: lib::lxc_snapshot) -> Snapshot {
         Snapshot {
             handle: raw
         }
@@ -69,7 +69,7 @@ impl Snapshot {
 impl Drop for Snapshot {
     fn drop(&mut self) {
         unsafe {
-            (*self.handle).free.unwrap()(self.handle);
+            self.handle.free.unwrap()(&mut self.handle);
         }
     }
 }
@@ -344,7 +344,7 @@ impl Container {
             }
 
             let count = count as usize;
-            let vec: Vec<*mut lib::lxc_snapshot> = Vec::from_raw_parts(&mut ptr, count, count);
+            let vec: Vec<lib::lxc_snapshot> = Vec::from_raw_parts(ptr, count, count);
 
             let vec = vec.into_iter()
                 .map(|s| Snapshot::from_raw(s))

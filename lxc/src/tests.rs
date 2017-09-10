@@ -89,8 +89,17 @@ fn create_snapshot_restore_container() {
     assert!(ct.is_ok());
     let ct = ct.unwrap();
 
+    // Verify that it can be started and stopped
+    assert!(ct.start().is_ok());
+    assert!(ct.stop().is_ok());
+
     // Try taking a snapshot
     let snap = ct.snapshot(None);
     assert!(snap.is_ok());
     let snap = snap.unwrap();
+
+    // Verify that the listing contains the snapshot
+    let snaps = ct.snapshot_list();
+    assert!(snaps.is_ok());
+    assert!(snaps.unwrap().len() > 0);
 }
