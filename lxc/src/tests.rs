@@ -35,7 +35,7 @@ fn create_get_start_freeze_unfreeze_stop_destroy_container() {
     // Verify that it can be stopped
     assert!(ct.stop().is_ok());
 
-    // Verify it can be destroy
+    // Verify it can be destroyed
     assert!(ct.destroy().is_ok());
 }
 
@@ -57,7 +57,7 @@ fn create_download_container() {
 }
 
 #[test]
-fn create_config_destroy_container() {
+fn create_config_container() {
     // Create a container
     let ct = Container::create("/var/lib/lxc", "calice", Template::new("debian"));
     assert!(ct.is_ok());
@@ -80,4 +80,17 @@ fn create_config_destroy_container() {
 
     // Destroy it
     assert!(ct.destroy().is_ok());
+}
+
+#[test]
+fn create_snapshot_restore_container() {
+    // Create a container
+    let ct = Container::create("/var/lib/lxc", "caribou", Template::new("debian"));
+    assert!(ct.is_ok());
+    let ct = ct.unwrap();
+
+    // Try taking a snapshot
+    let snap = ct.snapshot(None);
+    assert!(snap.is_ok());
+    let snap = snap.unwrap();
 }

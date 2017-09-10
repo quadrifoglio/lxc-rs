@@ -51,6 +51,29 @@ impl Template {
     }
 }
 
+/// Represents an LXC container snapshot.
+pub struct Snapshot {
+    handle: *mut lib::lxc_snapshot
+}
+
+impl Snapshot {
+    /// Create a Rust Snapshot object based on a
+    /// liblxc lxc_snapshot struct.
+    fn from_raw(raw: *mut lib::lxc_snapshot) -> Snapshot {
+        Snapshot {
+            handle: raw
+        }
+    }
+}
+
+impl Drop for Snapshot {
+    fn drop(&mut self) {
+        unsafe {
+            (*self.handle).free.unwrap()(self.handle);
+        }
+    }
+}
+
 /// LXC Container object representation.
 #[derive(Debug)]
 pub struct Container {
@@ -284,6 +307,50 @@ impl Container {
             }
 
             Ok(())
+        }
+    }
+
+    /// Create a LXC container snapshot with the given path
+    /// to the snapshot's comment file. Returns the
+    /// zero-based snapshot number.
+    pub fn snapshot(&self, comment_file: Option<&str>) -> Result<u32> {
+        unsafe {
+            let num: i32;
+
+            if let Some(comment_file) = comment_file {
+                let comment_file = CString::new(comment_file).unwrap();
+                num = (*self.handle).snapshot.unwrap()(self.handle, comment_file.as_ptr());
+            }
+            else {
+                num = (*self.handle).snapshot.unwrap()(self.handle, 0 as *const c_char);
+            }
+
+            if num < 0 {
+                return Err(Error::Unknown);
+            }
+
+            Ok(num as u32)
+        }
+    }
+
+    /// Obtain a list of container snapshot.
+    pub fn snapshot_list(&self) -> Result<Vec<Snapshot>> {
+        unsafe {
+            let mut ptr = 0 as *mut lib::lxc_snapshot;
+            let count = (*self.handle).snapshot_list.unwrap()(self.handle, &mut ptr);
+
+            if count < 0 {
+                return Err(Error::Unknown);
+            }
+
+            let count = count as usize;
+            let vec: Vec<*mut lib::lxc_snapshot> = Vec::from_raw_parts(&mut ptr, count, count);
+
+            let vec = vec.into_iter()
+                .map(|s| Snapshot::from_raw(s))
+                .collect::<Vec<Snapshot>>();
+
+            Ok(vec)
         }
     }
 
