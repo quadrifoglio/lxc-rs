@@ -380,6 +380,19 @@ impl Container {
         }
     }
 
+    /// Destroy the specified snapshot.
+    pub fn snapshot_destroy(&self, snap_name: &str) -> Result<()> {
+        unsafe {
+            let snap_name = CString::new(snap_name).unwrap();
+
+            if !(*self.handle).snapshot_destroy.unwrap()(self.handle, snap_name.as_ptr()) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Request the container to shutdown. Returns an error
     /// if the container failed to shutdown in the
     /// given time.

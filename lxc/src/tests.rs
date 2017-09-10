@@ -112,6 +112,9 @@ fn create_snapshot_restore_container() {
     // Restore the created snapshot
     assert!(ct.snapshot_restore(snap.name.as_str(), ct.name.as_str()).is_ok());
 
+    // Destroy the snapshot
+    assert!(ct.snapshot_destroy(snap.name.as_str()).is_ok());
+
     // Destroy the container
     assert!(ct.destroy().is_ok());
 }
