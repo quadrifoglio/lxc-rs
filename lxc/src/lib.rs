@@ -287,6 +287,27 @@ impl Container {
         }
     }
 
+    /// Clear the container's in-memory configuration.
+    pub fn clear_config(&self) -> Result<()> {
+        unsafe {
+            (*self.handle).clear_config.unwrap()(self.handle);
+            Ok(())
+        }
+    }
+
+    /// Clear a specific container configuration item.
+    pub fn clear_config_item(&self, key: &str) -> Result<()> {
+        unsafe {
+            let key = CString::new(key).unwrap();
+
+            if !(*self.handle).clear_config_item.unwrap()(self.handle, key.as_ptr()) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Start the LXC container.
     pub fn start(&self) -> Result<()> {
         unsafe {
