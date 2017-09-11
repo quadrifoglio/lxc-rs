@@ -393,6 +393,35 @@ impl Container {
         }
     }
 
+    /// Checkpoint an LXC container. Dump the checkpoint files in the
+    /// specified directory. There is the possibility to stop the
+    /// container after the ckeckpoint is done.
+    pub fn checkpoint(&self, directory: &str, stop: bool, verbose: bool) -> Result<()> {
+        unsafe {
+            let directory = CString::new(directory).unwrap();
+
+            if !(*self.handle).checkpoint.unwrap()(self.handle, directory.as_ptr() as *mut c_char, stop, verbose) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Restore a container from a checkpoint previously dumped into
+    /// the specified directory.
+    pub fn restore(&self, directory: &str, verbose: bool) -> Result<()> {
+        unsafe {
+            let directory = CString::new(directory).unwrap();
+
+            if !(*self.handle).restore.unwrap()(self.handle, directory.as_ptr() as *mut c_char, verbose) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Request the container to shutdown. Returns an error
     /// if the container failed to shutdown in the
     /// given time.
