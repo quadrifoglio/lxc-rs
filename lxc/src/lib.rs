@@ -319,6 +319,33 @@ impl Container {
         }
     }
 
+    /// Start the LXC container.
+    pub fn stop(&self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).stop.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Check wether a container is running or not.
+    pub fn is_running(&self) -> bool {
+        unsafe {
+            (*self.handle).is_running.unwrap()(self.handle)
+        }
+    }
+
+    /// Determine the state of a container. Returns an upper-case
+    /// word representing the state.
+    pub fn state(&self) -> &'static str {
+        unsafe {
+            let s = (*self.handle).state.unwrap()(self.handle);
+            CStr::from_ptr(s).to_str().unwrap()
+        }
+    }
+
     /// Freeze a running LXC container.
     pub fn freeze(&self) -> Result<()> {
         unsafe {
@@ -460,17 +487,6 @@ impl Container {
     pub fn shutdown(&self, timeout: i32) -> Result<()> {
         unsafe {
             if !(*self.handle).shutdown.unwrap()(self.handle, timeout) {
-                return Err(Error::Unknown);
-            }
-
-            Ok(())
-        }
-    }
-
-    /// Start the LXC container.
-    pub fn stop(&self) -> Result<()> {
-        unsafe {
-            if !(*self.handle).stop.unwrap()(self.handle) {
                 return Err(Error::Unknown);
             }
 

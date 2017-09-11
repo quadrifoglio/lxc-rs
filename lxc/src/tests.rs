@@ -26,8 +26,13 @@ fn create_get_start_freeze_unfreeze_stop_destroy_container() {
     // Verify that it can be started
     assert!(ct.start().is_ok());
 
+    // Verify its state
+    assert!(ct.is_running());
+    assert_eq!(ct.state(), "RUNNING");
+
     // Verify that it can be frozen
     assert!(ct.freeze().is_ok());
+    assert_eq!(ct.state(), "FROZEN");
 
     // Verify that it can be unfrozen
     assert!(ct.unfreeze().is_ok());
