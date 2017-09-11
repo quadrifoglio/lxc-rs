@@ -102,7 +102,7 @@ impl Container {
 
             Container {
                 handle: raw,
-                name: CString::from_raw(c.name).into_string().unwrap(),
+                name: CStr::from_ptr(c.name as *const c_char).to_str().unwrap().to_owned()
             }
         }
     }
@@ -504,7 +504,7 @@ impl Container {
 impl Drop for Container {
     fn drop(&mut self) {
         unsafe {
-            libc::free(self.handle as *mut c_void);
+            lib::lxc_container_put(self.handle);
         }
     }
 }
