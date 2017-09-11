@@ -393,6 +393,17 @@ impl Container {
         }
     }
 
+    /// Destroy all the container's snapshots.
+    pub fn snapshot_destroy_all(&self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).snapshot_destroy_all.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Checkpoint an LXC container. Dump the checkpoint files in the
     /// specified directory. There is the possibility to stop the
     /// container after the ckeckpoint is done.
@@ -439,6 +450,17 @@ impl Container {
     pub fn stop(&self) -> Result<()> {
         unsafe {
             if !(*self.handle).stop.unwrap()(self.handle) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Destroy the LXC container and all its snapshots.
+    pub fn destroy_with_snapshots(self) -> Result<()> {
+        unsafe {
+            if !(*self.handle).destroy_with_snapshots.unwrap()(self.handle) {
                 return Err(Error::Unknown);
             }
 
