@@ -308,6 +308,30 @@ impl Container {
         }
     }
 
+    /// Change wether the container wants to run disconnected
+    /// from the terminal.
+    pub fn want_daemonize(&self, want_daemonize: bool) -> Result<()> {
+        unsafe {
+            if !(*self.handle).want_daemonize.unwrap()(self.handle, want_daemonize) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Change wether the container wishes all the file descriptors
+    /// to be closed on startup.
+    pub fn want_close_all_fds(&self, want_close_all_fds: bool) -> Result<()> {
+        unsafe {
+            if !(*self.handle).want_close_all_fds.unwrap()(self.handle, want_close_all_fds) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
     /// Start the LXC container.
     pub fn start(&self) -> Result<()> {
         unsafe {
