@@ -131,6 +131,7 @@ impl Container {
     /// lxcpath.
     pub fn list(lxcpath: &str) -> Result<Vec<Container>> {
         unsafe {
+            let mut lxcpath = CString::new(lxcpath).unwrap();
             let mut conts = 0 as *mut *mut lib::lxc_container;
 
             let count = lib::list_defined_containers(
