@@ -240,6 +240,34 @@ impl Container {
         }
     }
 
+    /// Retrieve a list of config item keys given a key prefix.
+    pub fn get_keys(&self, key_prefix: &str) -> Result<Vec<String>> {
+        unsafe {
+            let key_prefix = CString::new(key_prefix).unwrap();
+            let length = (*self.handle).get_keys.unwrap()(self.handle, key_prefix.as_ptr(), 0 as *mut c_char, 0);
+            println!("pute {}", length);
+
+            if length < 0 {
+                return Err(Error::Unknown);
+            }
+            else if length == 0 {
+                return Ok(Vec::new());
+            }
+
+            let mut s = vec![0u8; length as usize];
+
+            let ok = (*self.handle).get_keys.unwrap()(self.handle, key_prefix.as_ptr(), s.as_mut_ptr() as *mut c_char, length);
+            if ok < 0 {
+                return Err(Error::Unknown);
+            }
+
+            let s = String::from_utf8(s).unwrap();
+            println!("{}", s);
+
+            Ok(Vec::new())
+        }
+    }
+
     /// Retreive the value of a configuration
     /// item of an LXC container.
     pub fn get_config_item(&self, key: &str) -> Result<String> {
@@ -301,6 +329,19 @@ impl Container {
             let key = CString::new(key).unwrap();
 
             if !(*self.handle).clear_config_item.unwrap()(self.handle, key.as_ptr()) {
+                return Err(Error::Unknown);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Save the container configuration to a file.
+    pub fn save_config(&self, file_path: &str) -> Result<()> {
+        unsafe {
+            let file_path = CString::new(file_path).unwrap();
+
+            if !(*self.handle).save_config.unwrap()(self.handle, file_path.as_ptr()) {
                 return Err(Error::Unknown);
             }
 
