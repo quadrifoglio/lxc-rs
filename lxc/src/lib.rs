@@ -1,4 +1,27 @@
-/// Rust library to interact with LXC.
+//! # lxc-rs
+//!
+//! This crate is a binding to LXC's (Linux Containers) system API.
+//! It attempts to allow esay access to all of liblxc's functionality
+//! in an ergonomic way from the Rust Programming Language.
+//!
+//! Here is an example of how this crate can to used to list all
+//! the LXC conainers in the specified lxcpath and display
+//! their status (STOPPED, RUNNING, FROZEN...).
+//!
+//! ```rust
+//! extern crate lxc;
+//!
+//! use lxc::Container;
+//!
+//! fn main() {
+//!     let lxcpath = "/var/lib/lxc";
+//!     let containers = Container::list(lxcpath).unwrap();
+//!
+//!     for c in containers {
+//!         println!("{} - {}", c.name, c.state());
+//!     }
+//! }
+//! ```
 
 extern crate libc;
 extern crate lxc_sys as lib;
@@ -90,7 +113,7 @@ impl Drop for Snapshot {
     }
 }
 
-/// LXC Container object representation.
+/// Represents an LXC Container.
 #[derive(Debug)]
 pub struct Container {
     handle: *mut lib::lxc_container,
