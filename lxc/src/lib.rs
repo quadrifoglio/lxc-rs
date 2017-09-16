@@ -9,9 +9,15 @@ use std::ffi::{CStr, CString};
 /// Custom error type for this library.
 #[derive(Debug)]
 pub enum Error {
+    /// The requested container does not exist.
     ContainerDoesNotExists,
+
+    /// Impossible to create container, it already exists.
     ContainerAlreadyExists,
-    Unknown
+
+    /// The call to liblxc resulted in an error.
+    // TODO: Better error handling of these cases
+    OperationFailed
 }
 
 /// Custom result type for this library.
@@ -141,7 +147,7 @@ impl Container {
             );
 
             if count < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
             else if count == 0 {
                 return Ok(Vec::new())
@@ -168,7 +174,7 @@ impl Container {
 
             let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
             if ct == 0 as *mut lib::lxc_container {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             if !(*ct).is_defined.unwrap()(ct) {
@@ -188,7 +194,7 @@ impl Container {
 
             let ct = lib::lxc_container_new(name.as_ptr(), lxcpath.as_ptr());
             if ct == 0 as *mut lib::lxc_container {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             if (*ct).is_defined.unwrap()(ct) {
@@ -219,7 +225,7 @@ impl Container {
             );
 
             if !ok {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(Container::from_raw(ct))
@@ -233,7 +239,7 @@ impl Container {
             let ptr = (*self.handle).config_file_name.unwrap()(self.handle);
 
             if ptr == 0 as *mut c_char {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             let name = CString::from_raw(ptr).into_string().unwrap();
@@ -249,7 +255,7 @@ impl Container {
             println!("pute {}", length);
 
             if length < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
             else if length == 0 {
                 return Ok(Vec::new());
@@ -259,7 +265,7 @@ impl Container {
 
             let ok = (*self.handle).get_keys.unwrap()(self.handle, key_prefix.as_ptr(), s.as_mut_ptr() as *mut c_char, length);
             if ok < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             let s = String::from_utf8(s).unwrap();
@@ -277,7 +283,7 @@ impl Container {
             let size = (*self.handle).get_config_item.unwrap()(self.handle, key.as_ptr(), 0 as *mut c_char, 0);
 
             if size < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             // Allocate a string long enough to hold the returned value
@@ -294,7 +300,7 @@ impl Container {
             value.pop();
 
             if ok < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(String::from_utf8(value).unwrap())
@@ -309,7 +315,7 @@ impl Container {
             let value = CString::new(value).unwrap();
 
             if !(*self.handle).set_config_item.unwrap()(self.handle, key.as_ptr(), value.as_ptr()) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -330,7 +336,7 @@ impl Container {
             let key = CString::new(key).unwrap();
 
             if !(*self.handle).clear_config_item.unwrap()(self.handle, key.as_ptr()) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -343,7 +349,7 @@ impl Container {
             let file_path = CString::new(file_path).unwrap();
 
             if !(*self.handle).save_config.unwrap()(self.handle, file_path.as_ptr()) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -355,7 +361,7 @@ impl Container {
     pub fn want_daemonize(&self, want_daemonize: bool) -> Result<()> {
         unsafe {
             if !(*self.handle).want_daemonize.unwrap()(self.handle, want_daemonize) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -367,7 +373,7 @@ impl Container {
     pub fn want_close_all_fds(&self, want_close_all_fds: bool) -> Result<()> {
         unsafe {
             if !(*self.handle).want_close_all_fds.unwrap()(self.handle, want_close_all_fds) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -378,7 +384,7 @@ impl Container {
     pub fn start(&self) -> Result<()> {
         unsafe {
             if !(*self.handle).start.unwrap()(self.handle, 0 as c_int, 0 as *const *const c_char) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -389,7 +395,7 @@ impl Container {
     pub fn stop(&self) -> Result<()> {
         unsafe {
             if !(*self.handle).stop.unwrap()(self.handle) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -416,7 +422,7 @@ impl Container {
     pub fn freeze(&self) -> Result<()> {
         unsafe {
             if !(*self.handle).freeze.unwrap()(self.handle) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -427,7 +433,7 @@ impl Container {
     pub fn unfreeze(&self) -> Result<()> {
         unsafe {
             if !(*self.handle).unfreeze.unwrap()(self.handle) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -450,7 +456,7 @@ impl Container {
             }
 
             if num < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(num as u32)
@@ -464,7 +470,7 @@ impl Container {
             let count = (*self.handle).snapshot_list.unwrap()(self.handle, &mut ptr);
 
             if count < 0 {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             let count = count as usize;
@@ -487,7 +493,7 @@ impl Container {
             let container_name = CString::new(container_name).unwrap();
 
             if !(*self.handle).snapshot_restore.unwrap()(self.handle, snap_name.as_ptr(), container_name.as_ptr()) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -500,7 +506,7 @@ impl Container {
             let snap_name = CString::new(snap_name).unwrap();
 
             if !(*self.handle).snapshot_destroy.unwrap()(self.handle, snap_name.as_ptr()) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -511,7 +517,7 @@ impl Container {
     pub fn snapshot_destroy_all(&self) -> Result<()> {
         unsafe {
             if !(*self.handle).snapshot_destroy_all.unwrap()(self.handle) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -526,7 +532,7 @@ impl Container {
             let directory = CString::new(directory).unwrap();
 
             if !(*self.handle).checkpoint.unwrap()(self.handle, directory.as_ptr() as *mut c_char, stop, verbose) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -540,7 +546,7 @@ impl Container {
             let directory = CString::new(directory).unwrap();
 
             if !(*self.handle).restore.unwrap()(self.handle, directory.as_ptr() as *mut c_char, verbose) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -553,7 +559,7 @@ impl Container {
     pub fn shutdown(&self, timeout: i32) -> Result<()> {
         unsafe {
             if !(*self.handle).shutdown.unwrap()(self.handle, timeout) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -564,7 +570,7 @@ impl Container {
     pub fn destroy_with_snapshots(self) -> Result<()> {
         unsafe {
             if !(*self.handle).destroy_with_snapshots.unwrap()(self.handle) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
@@ -575,7 +581,7 @@ impl Container {
     pub fn destroy(self) -> Result<()> {
         unsafe {
             if !(*self.handle).destroy.unwrap()(self.handle) {
-                return Err(Error::Unknown);
+                return Err(Error::OperationFailed);
             }
 
             Ok(())
