@@ -2,7 +2,9 @@
 
 rust bindings to liblxc.
 
-# example
+work in progress, definitely not ready for any kind of use other than experimental.
+
+## example
 
 ```rust
 extern crate lxc;
@@ -23,6 +25,6 @@ fn main() {
 
 see the ```lxc/examples``` directory for more usage examples.
 
-# note
+## note
 
 the original liblxc library needs to be available on the system to use this crate.
