@@ -43,6 +43,22 @@ pub enum Error {
     OperationFailed
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", *self)
+    }
+}
+
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::ContainerDoesNotExists => "Container does not exist",
+            Error::ContainerAlreadyExists => "Container already exists",
+            Error::OperationFailed => "Operation failed: the call to liblxc resulted in an error"
+        }
+    }
+}
+
 /// Custom result type for this library.
 pub type Result<T> = std::result::Result<T, Error>;
 
