@@ -2,6 +2,8 @@
 
 use super::{Container, Template};
 
+const LXC_PATH: &'static str = "/var/lib/lxc";
+
 #[test]
 fn get_version() {
     assert!(super::get_version().len() > 0);
@@ -10,13 +12,13 @@ fn get_version() {
 #[test]
 fn create_get_start_freeze_unfreeze_stop_destroy_container() {
     // Create container
-    let ct = Container::create("/var/lib/lxc", "fromage", Template::new("debian")).unwrap();
+    Container::create(LXC_PATH, "fromage", Template::new("debian")).unwrap();
 
     // Verify it exists
     assert!(Container::exists(LXC_PATH, "fromage"));
 
     // Verify we can get its informations
-    let ct = Container::get("/var/lib/lxc", "fromage").unwrap();
+    let ct = Container::get(LXC_PATH, "fromage").unwrap();
     assert_eq!(ct.name.as_str(), "fromage");
 
     // Verify that it can be started
@@ -49,7 +51,7 @@ fn create_download_container() {
         .option("-a", "amd64");
 
     // Create container
-    let ct = Container::create("/var/lib/lxc", "reblochon", template).unwrap();
+    let ct = Container::create(LXC_PATH, "reblochon", template).unwrap();
 
     // Destroy container
     ct.destroy().unwrap();
@@ -58,7 +60,7 @@ fn create_download_container() {
 #[test]
 fn create_config_container() {
     // Create a container
-    let ct = Container::create("/var/lib/lxc", "calice", Template::new("debian")).unwrap();
+    let ct = Container::create(LXC_PATH, "calice", Template::new("debian")).unwrap();
 
     // Verify that it has a valid configration file
     let conf_path = ct.get_config_file_name().unwrap();
@@ -80,7 +82,7 @@ fn create_config_container() {
 #[test]
 fn create_snapshot_restore_container() {
     // Create a container
-    let ct = Container::create("/var/lib/lxc", "caribou", Template::new("debian")).unwrap();
+    let ct = Container::create(LXC_PATH, "caribou", Template::new("debian")).unwrap();
 
     // Verify that it can be started and stopped
     ct.start().unwrap();
