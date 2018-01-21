@@ -64,7 +64,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// Determine the version of LXC currently
 /// in use.
-pub fn get_version() -> &'static str {
+pub fn version() -> &'static str {
     unsafe {
         CStr::from_ptr(lib::lxc_get_version())
             .to_str().unwrap()

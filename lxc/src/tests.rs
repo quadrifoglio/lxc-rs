@@ -5,8 +5,8 @@ use super::{Container, Template};
 const LXC_PATH: &'static str = "/var/lib/lxc";
 
 #[test]
-fn get_version() {
-    assert!(super::get_version().len() > 0);
+fn version() {
+    assert!(super::version().len() > 0);
 }
 
 #[test]

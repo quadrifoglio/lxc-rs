@@ -12,7 +12,7 @@ extern crate lxc;
 use lxc::Container;
 
 fn main() {
-	println!("using LXC version {}", lxc::get_version());
+	println!("using lxc version {}", lxc::version());
 
 	let lxcpath = "/var/lib/lxc";
 	let containers = Container::list(lxcpath).unwrap();
